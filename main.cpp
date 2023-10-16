@@ -56,6 +56,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	float playerAcclerationY = 0.0f;
 
+	int jumpChargeCount = 0;
+
 
 
 	//プレイヤーの表示(矩形版)
@@ -116,18 +118,31 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 		playerPosY -= pSpeedY;
 
-		pSpeedX += playerAcclerationX;
-
 		playerPosX += pSpeedX;
 
-		if (keys[DIK_SPACE] && preKeys[DIK_SPACE] == 0) {
+		if (keys[DIK_SPACE] && jumpChargeCount <= 60) {
+			jumpChargeCount++;
+
+		}
+
+
+		//キーが離れた瞬間に速度と加速度が付与される
+		if (keys[DIK_SPACE] == 0 && preKeys[DIK_SPACE]) {
+			if (jumpChargeCount < 30) {//長押しするほどジャンプ力が上がる
+				pSpeedY = 15;
+
+				pSpeedX = 2;
+
+			}
+			else if (jumpChargeCount > 31) {
+				pSpeedY = 20;
+
+				pSpeedX = 3;
+			}
 			playerAcclerationY = -0.8f;
 
-			pSpeedY = 17.0f;
 
-
-
-			pSpeedX = 5.0f;
+			jumpChargeCount = 0;
 
 		}
 
@@ -144,7 +159,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			playerAcclerationX = 0;
 		}
 
-
+		if (playerPosX > kWindowWidth - 32) {
+			playerPosX = kWindowWidth - 32;
+		}
 
 
 
@@ -160,6 +177,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		///
 		/// ↓描画処理ここから
 		///
+
+		Novice::ScreenPrintf(0, 0, "counter=%d", jumpChargeCount);
 
 		Novice::DrawBox(int(playerPosX), int(playerPosY), 32, 64, 0.0f, WHITE, kFillModeSolid);
 
