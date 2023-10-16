@@ -38,29 +38,48 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		int texture;//画像読み込み用変数
 	};
 
-	int playerTx = Novice::LoadTexture("./resources/DRAGON2.png");
+	//int playerTx = Novice::LoadTexture("./resources./DRAGON2.png");
 
-	Player player =
-	{
-		16,32,
-		{player.halfWidth,kWindowHeight - player.halfHeight},
 
-		player.centerPosition.x - player.halfWidth,//左上X座標
-			player.centerPosition.y - player.halfHeight,//左上Y座標
-			player.centerPosition.x + player.halfWidth,//右上X座標
-			player.centerPosition.y - player.halfHeight,//右上Y座標
-			player.centerPosition.x - player.halfWidth,//左下X座標
-			player.centerPosition.y + player.halfHeight,//左下Y座標
-			player.centerPosition.x + player.halfWidth,//右下X座標
-			player.centerPosition.y + player.halfHeight,//右下Y座標
+	//============================================================
+	//player(DrawBox版)
+	//============================================================
+	float playerPosX = 360;
 
-		{0,0},
+	float  playerPosY = kWindowHeight - 64;
 
-		{0,-0.8f},
+	float pSpeedX = 0;
 
-		playerTx,
+	float pSpeedY = 0;
 
-	};
+	float playerAcclerationX = -0.0f;
+
+	float playerAcclerationY = 0.0f;
+
+
+
+	//プレイヤーの表示(矩形版)
+	//Player player =
+	//{
+	//	16,32,
+	//	{player.halfWidth,kWindowHeight - player.halfHeight},
+	//
+	//	player.centerPosition.x - player.halfWidth,//左上X座標
+	//		player.centerPosition.y - player.halfHeight,//左上Y座標
+	//		player.centerPosition.x + player.halfWidth,//右上X座標
+	//		player.centerPosition.y - player.halfHeight,//右上Y座標
+	//		player.centerPosition.x - player.halfWidth,//左下X座標
+	//		player.centerPosition.y + player.halfHeight,//左下Y座標
+	//		player.centerPosition.x + player.halfWidth,//右下X座標
+	//		player.centerPosition.y + player.halfHeight,//右下Y座標
+	//
+	//	{0,0},
+	//
+	//	{0,-0.8f},
+	//
+	//	playerTx,
+	//
+	//};
 
 
 	Novice::Initialize(kWindowTitle, kWindowWidth, kWindowHeight);
@@ -84,35 +103,45 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		/// ↓更新処理ここから
 		///
 
-		player.vertexPosition[0].x = player.centerPosition.x - player.halfWidth;//左上X座標
-		player.vertexPosition[0].y = player.centerPosition.y - player.halfHeight;//左上Y座標
-		player.vertexPosition[1].x = player.centerPosition.x + player.halfWidth;//右上X座標
-		player.vertexPosition[1].y = player.centerPosition.y - player.halfHeight;//右上Y座標
-		player.vertexPosition[2].x = player.centerPosition.x - player.halfWidth;//左下X座標
-		player.vertexPosition[2].y = player.centerPosition.y + player.halfHeight;//左下Y座標
-		player.vertexPosition[3].x = player.centerPosition.x + player.halfWidth;//右下X座標
-		player.vertexPosition[3].y = player.centerPosition.y + player.halfHeight;//右下Y座標
+		//player.vertexPosition[0].x = player.centerPosition.x - player.halfWidth;//左上X座標
+		//player.vertexPosition[0].y = player.centerPosition.y - player.halfHeight;//左上Y座標
+		//player.vertexPosition[1].x = player.centerPosition.x + player.halfWidth;//右上X座標
+		//player.vertexPosition[1].y = player.centerPosition.y - player.halfHeight;//右上Y座標
+		//player.vertexPosition[2].x = player.centerPosition.x - player.halfWidth;//左下X座標
+		//player.vertexPosition[2].y = player.centerPosition.y + player.halfHeight;//左下Y座標
+		//player.vertexPosition[3].x = player.centerPosition.x + player.halfWidth;//右下X座標
+		//player.vertexPosition[3].y = player.centerPosition.y + player.halfHeight;//右下Y座標
 
-		player.velocity.y += player.acceleration.y;
+		pSpeedY += playerAcclerationY;
 
-		player.centerPosition.y -= player.velocity.y;
+		playerPosY -= pSpeedY;
 
-		if (keys[DIK_SPACE] != 0 && player.centerPosition.y == kWindowHeight - player.halfHeight) {
-			player.acceleration.y = -0.8f;
+		pSpeedX += playerAcclerationX;
 
-			player.velocity.y = 17.0f;
+		playerPosX += pSpeedX;
+
+		if (keys[DIK_SPACE] && preKeys[DIK_SPACE] == 0) {
+			playerAcclerationY = -0.8f;
+
+			pSpeedY = 17.0f;
+
+
+
+			pSpeedX = 5.0f;
 
 		}
 
-		if (player.centerPosition.y > kWindowHeight - player.halfHeight) {
+		if (playerPosY > kWindowHeight - 64) {
 
-			player.centerPosition.y = float(kWindowHeight - player.halfHeight);
+			playerPosY = float(kWindowHeight - 64);
 
-			player.velocity.y = 0;
+			pSpeedY = 0;
 
-			player.acceleration.y = 0;
+			playerAcclerationY = 0;
 
+			pSpeedX = 0;
 
+			playerAcclerationX = 0;
 		}
 
 
@@ -131,17 +160,21 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		///
 		/// ↓描画処理ここから
 		///
-		Novice::DrawQuad(
-			int(player.vertexPosition[0].x),
-			int(player.vertexPosition[0].y),
-			int(player.vertexPosition[1].x),
-			int(player.vertexPosition[1].y),
-			int(player.vertexPosition[2].x),
-			int(player.vertexPosition[2].y),
-			int(player.vertexPosition[3].x),
-			int(player.vertexPosition[3].y),
-			0, 0, 64, 64, playerTx, WHITE
-		);
+
+		Novice::DrawBox(int(playerPosX), int(playerPosY), 32, 64, 0.0f, WHITE, kFillModeSolid);
+
+
+		//	Novice::DrawQuad(
+		//		int(player.vertexPosition[0].x),
+		//		int(player.vertexPosition[0].y),
+		//		int(player.vertexPosition[1].x),
+		//		int(player.vertexPosition[1].y),
+		//		int(player.vertexPosition[2].x),
+		//		int(player.vertexPosition[2].y),
+		//		int(player.vertexPosition[3].x),
+		//		int(player.vertexPosition[3].y),
+		//		0, 0, 64, 64, playerTx, WHITE
+		//);
 		///
 		/// ↑描画処理ここまで
 		///
