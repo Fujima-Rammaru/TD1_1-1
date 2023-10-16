@@ -1,8 +1,5 @@
 #include <Novice.h>
 
-//キャラクターの動き
-
-//ステージの大きさ->23x40(ブロック単位)==736x1280
 
 const char kWindowTitle[] = "GC1C_13_フジマ_ランマル_タイトル";
 
@@ -41,7 +38,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		int texture;//画像読み込み用変数
 	};
 
-	int playerTx = Novice::LoadTexture("./Resources/DRAGON2.png");
+	int playerTx = Novice::LoadTexture("./resources/DRAGON2.png");
 
 	Player player =
 	{
@@ -66,7 +63,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	};
 
 
-	Novice::Initialize(kWindowTitle, kWindowWidth,kWindowHeight);
+	Novice::Initialize(kWindowTitle, kWindowWidth, kWindowHeight);
 
 
 
@@ -143,7 +140,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			int(player.vertexPosition[2].y),
 			int(player.vertexPosition[3].x),
 			int(player.vertexPosition[3].y),
-			0, 0, 64, 64, player.texture, WHITE
+			0, 0, 64, 64, playerTx, WHITE
 		);
 		///
 		/// ↑描画処理ここまで
