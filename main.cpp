@@ -10,7 +10,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	enum SCENE {
 		GAME_START,//0
-		GAME_PLAY,//1
+		GAME_PLAY,//
 		GAME_RESULT,//2
 		GAME_OVER,//3
 
