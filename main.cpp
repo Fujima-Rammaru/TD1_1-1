@@ -38,7 +38,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		int texture;//画像読み込み用変数
 	};
 
-	//int playerTx = Novice::LoadTexture("./Resources/DRAGON2.png");
+	int playerTx = Novice::LoadTexture("./Resources/DRAGON2.png");
 
 
 	//============================================================
@@ -181,6 +181,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		Novice::ScreenPrintf(0, 0, "counter=%d", jumpChargeCount);
 
 		Novice::DrawBox(int(playerPosX), int(playerPosY), 32, 64, 0.0f, WHITE, kFillModeSolid);
+
+		Novice::ScreenPrintf(0, 0, "textureHandle=%d", playerTx);
 
 		
 
