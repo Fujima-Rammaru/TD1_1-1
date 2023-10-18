@@ -44,7 +44,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	//============================================================
 	//player(DrawBox版)
 	//============================================================
-	float playerPosX = 360;
+	float playerPosX = 0;
 
 	float  playerPosY = kWindowHeight - 64;
 
@@ -182,6 +182,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 		Novice::DrawBox(int(playerPosX), int(playerPosY), 32, 64, 0.0f, WHITE, kFillModeSolid);
 
+		
 
 		//	Novice::DrawQuad(
 		//		int(player.vertexPosition[0].x),
