@@ -29,7 +29,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		float halfHeight;//プレイヤーの縦幅
 
 		Vector2 centerPosition;//中心座標
-		Vector2 vertexPosition[4];//矩形の4頂点の座標
+		Vector2 leftTop;
+		Vector2 rightTop;
+		Vector2 leftBottom;
+		Vector2 rightBottom;
 
 		Vector2 velocity;//移動速度
 
@@ -38,7 +41,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		int texture;//画像読み込み用変数
 	};
 
-	int playerTx = Novice::LoadTexture("./Resources/DRAGON2.png");
+	int playerTx = Novice::LoadTexture("white1x1.png");
 
 
 	//============================================================
@@ -105,14 +108,14 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		/// ↓更新処理ここから
 		///
 
-		//player.vertexPosition[0].x = player.centerPosition.x - player.halfWidth;//左上X座標
-		//player.vertexPosition[0].y = player.centerPosition.y - player.halfHeight;//左上Y座標
-		//player.vertexPosition[1].x = player.centerPosition.x + player.halfWidth;//右上X座標
-		//player.vertexPosition[1].y = player.centerPosition.y - player.halfHeight;//右上Y座標
-		//player.vertexPosition[2].x = player.centerPosition.x - player.halfWidth;//左下X座標
-		//player.vertexPosition[2].y = player.centerPosition.y + player.halfHeight;//左下Y座標
-		//player.vertexPosition[3].x = player.centerPosition.x + player.halfWidth;//右下X座標
-		//player.vertexPosition[3].y = player.centerPosition.y + player.halfHeight;//右下Y座標
+		//player.leftTop.x = player.centerPosition.x - player.halfWidth;//左上X座標
+		//player.leftTop.y = player.centerPosition.y - player.halfHeight;//左上Y座標
+		//player.rightTop.x = player.centerPosition.x + player.halfWidth;//右上X座標
+		//player.rightTop.y = player.centerPosition.y - player.halfHeight;//右上Y座標
+		//player.leftBottom.x = player.centerPosition.x - player.halfWidth;//左下X座標
+		//player.leftBottom.y = player.centerPosition.y + player.halfHeight;//左下Y座標
+		//player.rightBottom.x = player.centerPosition.x + player.halfWidth;//右下X座標
+		//player.rightBottom.y = player.centerPosition.y + player.halfHeight;//右下Y座標
 
 		pSpeedY += playerAcclerationY;
 
@@ -182,9 +185,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 		Novice::DrawBox(int(playerPosX), int(playerPosY), 32, 64, 0.0f, WHITE, kFillModeSolid);
 
-		Novice::ScreenPrintf(0, 0, "textureHandle=%d", playerTx);
+		Novice::DrawSprite(0, 0, playerTx, 1, 1, 0.0f, WHITE);
 
-		
+
 
 		//	Novice::DrawQuad(
 		//		int(player.vertexPosition[0].x),
