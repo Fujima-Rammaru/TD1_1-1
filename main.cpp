@@ -8,6 +8,16 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	// ライブラリの初期化
 	Novice::Initialize(kWindowTitle, 1280, 720);
 
+	enum SCENE {
+		GAME_START,//0
+		GAME_PLAY,//1
+		GAME_RESULT,//2
+		GAME_OVER,//3
+
+	};
+
+	int sceneNumber = 0;
+
 	// キー入力結果を受け取る箱
 	char keys[256] = {0};
 	char preKeys[256] = {0};
@@ -25,7 +35,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		/// ↓更新処理ここから
 		///
 
-		//test2
+		
 
 		///
 		/// ↑更新処理ここまで
