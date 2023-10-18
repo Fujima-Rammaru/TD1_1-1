@@ -38,7 +38,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		int texture;//画像読み込み用変数
 	};
 
-	//int playerTx = Novice::LoadTexture("./resources./DRAGON2.png");
+	//int playerTx = Novice::LoadTexture("./Resources/DRAGON2.png");
 
 
 	//============================================================
