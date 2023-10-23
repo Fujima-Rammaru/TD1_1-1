@@ -39,20 +39,25 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	//エンターが押されたかどうか
 	bool isPressEnter = false;
 
-	// //スタート画面のBGM読み込み
+	//BGM読み込み用の変数
 	int gameTitleAudio = Novice::LoadAudio("./Resources/Sound/Game_Title_BGM.wav");
-	// 
+
+	int gamePlayAudio = Novice::LoadAudio("./Resources/Sound/Game_Play_BGM.wav");
+
 	int playHandle_gameTitle = -1;
-	// 
-	// int playHandle_gameOver = -1;
-	// 
-	// int playHandle_gameResult = -1;
-	// 
+
+	int playHandle_gamePlay = -1;
+
+	//int playHandle_gameOver = -1;
+
+	//int playHandle_gameResult = -1;
+
 	// //ゲームオーバー画面のBGM読み込み
 	// int gameOverAudio = Novice::LoadAudio("./Resources/Sound/gameover.wav");
 
 	int animationspeed = 3;
 
+	//壁の初期座標
 	int wallPosX = -kWindowWidth;
 
 	int wallTexture = Novice::LoadTexture("./Resources/wall_test.png");
@@ -110,13 +115,25 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			break;
 
 		case GAME_PLAY:
+
+			//BGMを再生するための処理
+			if (Novice::IsPlayingAudio(playHandle_gamePlay) == 0 && pressEnterTimer == 0) {
+				playHandle_gamePlay = Novice::PlayAudio(gamePlayAudio, true, 1.0f);
+			}
+
 			if (keys[DIK_RETURN] && !preKeys[DIK_RETURN]) {
+				if (Novice::IsPlayingAudio(pressEnterAudioHandle) == 0) {
+
+					Novice::StopAudio(playHandle_gamePlay);
+
+					pressEnterAudioHandle = Novice::PlayAudio(pressEnterAudio, false, 0.5f);
+				}
 
 				isPressEnter = true;
 
 			}
 
-			//エンターを押したとき秒数カウント用変数が始動する
+			//エンターを押したとき秒数カウント用変数に1フレにつき+1する
 			if (isPressEnter) {
 				pressEnterTimer++;
 			}
@@ -128,13 +145,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 				isPressEnter = false;
 			}
 
+			//壁の移動処理
 			wallPosX += animationspeed;
 
 			if (wallPosX > 0) {
 				wallPosX = 0;
 
 			}
-
 
 			break;
 
@@ -181,7 +198,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 				isPressEnter = false;
 			}
 
-
 			break;
 
 		}
@@ -201,21 +217,21 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		switch (sceneNumber) {
 
 		case GAME_TITLE:
-
+			Novice::DrawSprite(0, 0, wallTexture, 1, 1, 0.0f, RED);
 			break;
 
 		case GAME_PLAY:
 
-			Novice::DrawSprite(wallPosX, 0, wallTexture, 1, 1, 0.0f, WHITE);
+			Novice::DrawSprite(0, 0, wallTexture, 1, 1, 0.0f, WHITE);
 
 			break;
 
 		case GAME_CLEAR:
-
+			Novice::DrawSprite(0, 0, wallTexture, 1, 1, 0.0f, BLUE);
 			break;
 
 		case GAME_OVER:
-
+			Novice::DrawSprite(0, 0, wallTexture, 1, 1, 0.0f, GREEN);
 			break;
 
 		}
