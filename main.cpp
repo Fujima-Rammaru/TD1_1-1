@@ -153,10 +153,15 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		player.centerPosition.x += player.velocity.x;
 
 
+		//床の当たり判定(上の辺)
 		for (int i = 0; i < kBlockQuantify; i++) {
+
 			if (block[i].leftT.x < player.rightBottom.x && player.leftTop.x < block[i].rightB.x) {
+
 				if (player.centerPosition.y > block[i].leftT.y - player.halfHeight) {
+
 					if (player.centerPosition.y + player.halfHeight < block[i].leftB.y) {
+
 						player.centerPosition.y = block[i].leftT.y - player.halfHeight;
 						player.velocity.x = 0;
 						player.velocity.y = 0;
@@ -166,6 +171,23 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			}
 		}
 
+		//床の当たり判定(下の辺)
+		for (int i = 0; i < kBlockQuantify; i++) {
+
+			//ブロックの左上Xがプレイヤの右下Xより小さい&&プレイヤの左下Xがブロックの右下Xより小さい
+			if (block[i].leftT.x < player.rightBottom.x && player.leftTop.x < block[i].rightB.x) {
+
+				//プレイヤの左上Yがブロックの左下Yより小さい&&ブロックの右上Yがプレイヤの左上Yより小さい
+				if (player.leftTop.y < block[i].leftB.y && block[i].rightT.y < player.leftTop.y) {
+
+					player.centerPosition.y = block[i].leftB.y + player.halfHeight;
+
+					player.velocity.y = 0;
+
+
+				}
+			}
+		}
 
 
 
