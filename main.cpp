@@ -21,13 +21,15 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	enum SCENE {
 		GAME_TITLE,//0
 		GAME_PLAY,//
-		GAME_CLEAR,//2
+		GAME_RESULT,//2
 		GAME_OVER,//3
 
 	};
 
 	//シーン遷移の値格納用変数
 	int sceneNumber = 0;
+
+
 
 	//スタート画面のエンターを押したときのSE読み込み
 	int pressEnterAudio = Novice::LoadAudio("./Resources/Sound/Enter_sounds.wav");
@@ -38,6 +40,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	//エンターが押されたかどうか
 	bool isPressEnter = false;
+
+
 
 	//BGM読み込み用の変数
 	int gameTitleAudio = Novice::LoadAudio("./Resources/Sound/Game_Title_BGM.wav");
@@ -155,7 +159,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 			break;
 
-		case GAME_CLEAR:
+		case GAME_RESULT:
 			if (keys[DIK_RETURN] && !preKeys[DIK_RETURN]) {
 
 				isPressEnter = true;
@@ -226,7 +230,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 			break;
 
-		case GAME_CLEAR:
+		case GAME_RESULT:
 			Novice::DrawSprite(0, 0, wallTexture, 1, 1, 0.0f, BLUE);
 			break;
 
