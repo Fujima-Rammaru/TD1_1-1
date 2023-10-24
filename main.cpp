@@ -64,7 +64,15 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	//壁の初期座標
 	int wallPosX = -kWindowWidth;
 
+	int TITLETexture = Novice::LoadTexture("./Resources/HOPPER Title.png");
+
 	int wallTexture = Novice::LoadTexture("./Resources/wall_test.png");
+
+	int RESULTTexture = Novice::LoadTexture("./Resources/HOPPER CREAR.png");
+
+	int GAME_OVERTexture = Novice::LoadTexture("./Resources/HOPPER OVER.png");
+
+
 
 	// キー入力結果を受け取る箱
 	char keys[256] = { 0 };
@@ -221,7 +229,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		switch (sceneNumber) {
 
 		case GAME_TITLE:
-			Novice::DrawSprite(0, 0, wallTexture, 1, 1, 0.0f, RED);
+			Novice::DrawSprite(0, 0, TITLETexture, 1, 1, 0.0f, RED);
 			break;
 
 		case GAME_PLAY:
@@ -231,11 +239,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			break;
 
 		case GAME_RESULT:
-			Novice::DrawSprite(0, 0, wallTexture, 1, 1, 0.0f, BLUE);
+			Novice::DrawSprite(0, 0, RESULTTexture, 1, 1, 0.0f, BLUE);
 			break;
 
 		case GAME_OVER:
-			Novice::DrawSprite(0, 0, wallTexture, 1, 1, 0.0f, GREEN);
+			Novice::DrawSprite(0, 0, GAME_OVERTexture, 1, 1, 0.0f, GREEN);
 			break;
 
 		}
