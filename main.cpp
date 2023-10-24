@@ -17,6 +17,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	const int kWindowWidth = kStageWidth * kBlockSize;
 	const int kWindowHeight = kStageHeight * kBlockSize;
 
+	//ブロックの個数
+	const int kBlockQuantify = 10;
+
 	struct Vector2
 	{
 		float x;
@@ -33,9 +36,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		Vector2 rightB;
 
 	};
-
-	Block block[5];
-
 
 	struct Player
 	{
@@ -75,17 +75,17 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	};
 
-	
 
-	for (int i = 0; i < 5; i++) {
+	Block block[kBlockQuantify];
+	for (int i = 0; i < kBlockQuantify; i++) {
 
 
 
 		block[i].halfsize = 16;
 
-		block[i].pos.x = float(64 * i)+200;
+		block[i].pos.x = float(32 * i) + 200;
 
-		block[i].pos.y = 670;
+		block[i].pos.y = 500;
 
 
 		//左上
@@ -114,6 +114,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	int jumpChargeCount = 0;
 
+	int jumpAudio = Novice::LoadAudio("./Resources/Sound/jump.wav");
+
+	int jumpAudioHandle = -1;
 
 
 	// キー入力結果を受け取る箱
@@ -150,11 +153,15 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		player.centerPosition.x += player.velocity.x;
 
 
-		for (int i = 0; i < 5; i++) {
+		for (int i = 0; i < kBlockQuantify; i++) {
 			if (block[i].leftT.x < player.rightBottom.x && player.leftTop.x < block[i].rightB.x) {
 				if (player.centerPosition.y > block[i].leftT.y - player.halfHeight) {
-					player.centerPosition.y = block[i].leftT.y - player.halfHeight;
-					player.velocity.x = 0;
+					if (player.centerPosition.y + player.halfHeight < block[i].leftB.y) {
+						player.centerPosition.y = block[i].leftT.y - player.halfHeight;
+						player.velocity.x = 0;
+						player.velocity.y = 0;
+					}
+
 				}
 			}
 		}
@@ -183,6 +190,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 				player.velocity.x = 3;
 			}
 			player.acceleration.y = -0.8f;
+
+			if (Novice::IsPlayingAudio(jumpAudioHandle) == 0) {
+				jumpAudioHandle = Novice::PlayAudio(jumpAudio, false, 1.0f);
+
+			}
 
 
 			jumpChargeCount = 0;
@@ -235,7 +247,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			0, 0, 1, 1, playerTx, WHITE
 		);
 
-		for (int i = 0; i < 5; i++) {
+		for (int i = 0; i < kBlockQuantify; i++) {
 			Novice::DrawQuad
 			(
 				int(block[i].leftT.x),
