@@ -23,6 +23,20 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		float y;
 	};
 
+	struct Block
+	{
+		float halfsize;
+		Vector2 pos;
+		Vector2 leftT;
+		Vector2 rightT;
+		Vector2 leftB;
+		Vector2 rightB;
+
+	};
+
+	Block block[5];
+
+
 	struct Player
 	{
 		float halfWidth;//プレイヤーの横幅
@@ -39,13 +53,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		Vector2 acceleration;//加速度
 
 	};
-
-
-
-
-
-
-
 
 	//プレイヤーの表示(矩形版)
 	Player player =
@@ -68,12 +75,46 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	};
 
+	
+
+	for (int i = 0; i < 5; i++) {
+
+
+
+		block[i].halfsize = 16;
+
+		block[i].pos.x = float(64 * i)+200;
+
+		block[i].pos.y = 670;
+
+
+		//左上
+		block[i].leftT.x = block[i].pos.x - block[i].halfsize;
+		block[i].leftT.y = block[i].pos.y - block[i].halfsize;
+		//左下																 
+		block[i].leftB.x = block[i].pos.x - block[i].halfsize;
+		block[i].leftB.y = block[i].pos.y + block[i].halfsize;
+
+		//右上																 
+		block[i].rightT.x = block[i].pos.x + block[i].halfsize;
+		block[i].rightT.y = block[i].pos.y - block[i].halfsize;
+
+		//右下																 
+		block[i].rightB.x = block[i].pos.x + block[i].halfsize;
+		block[i].rightB.y = block[i].pos.y + block[i].halfsize;
+
+
+	}
+
+
 
 	Novice::Initialize(kWindowTitle, kWindowWidth, kWindowHeight);
 
 	int playerTx = Novice::LoadTexture("white1x1.png");
 
 	int jumpChargeCount = 0;
+
+
 
 	// キー入力結果を受け取る箱
 	char keys[256] = { 0 };
@@ -101,11 +142,26 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		player.rightBottom.x = player.centerPosition.x + player.halfWidth;//右下X座標
 		player.rightBottom.y = player.centerPosition.y + player.halfHeight;//右下Y座標
 
+
 		player.velocity.y += player.acceleration.y;
 
 		player.centerPosition.y -= player.velocity.y;
 
 		player.centerPosition.x += player.velocity.x;
+
+
+		for (int i = 0; i < 5; i++) {
+			if (block[i].leftT.x < player.rightBottom.x && player.leftTop.x < block[i].rightB.x) {
+				if (player.centerPosition.y > block[i].leftT.y - player.halfHeight) {
+					player.centerPosition.y = block[i].leftT.y - player.halfHeight;
+					player.velocity.x = 0;
+				}
+			}
+		}
+
+
+
+
 
 		if (keys[DIK_SPACE] && jumpChargeCount <= 60) {
 			jumpChargeCount++;
@@ -155,8 +211,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 
 
-
-
 		///
 		/// ↑更新処理ここまで
 		///
@@ -180,6 +234,30 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			int(player.rightBottom.y),
 			0, 0, 1, 1, playerTx, WHITE
 		);
+
+		for (int i = 0; i < 5; i++) {
+			Novice::DrawQuad
+			(
+				int(block[i].leftT.x),
+				int(block[i].leftT.y),
+
+				int(block[i].rightT.x),
+				int(block[i].rightT.y),
+
+				int(block[i].leftB.x),
+				int(block[i].leftB.y),
+
+				int(block[i].rightB.x),
+				int(block[i].rightB.y),
+
+				0, 0, 32, 32, playerTx, RED
+
+
+			);
+
+		}
+
+
 		///
 		/// ↑描画処理ここまで
 		///
