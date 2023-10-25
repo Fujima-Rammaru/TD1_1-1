@@ -19,7 +19,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	const int kWindowHeight = kStageHeight * kBlockSize;
 
 	//ブロックの個数
-	const int kBlockQuantify = 10;
+	const int kBlockQuantify = 15;
 
 	struct Vector2
 	{
