@@ -18,7 +18,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	const int kWindowHeight = kStageHeight * kBlockSize;
 
 	//ブロックの個数
-	const int kBlockQuantify = 40;
+	const int kBlockQuantify1 = 40;
 	const int kBlockQuantify2 = 3;
 	const int kBlockQuantify3 = 4;
 	const int kBlockQuantify4 = 5;
@@ -222,8 +222,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	};
 
 
-	Block block[kBlockQuantify];
-	for (int i = 0; i < kBlockQuantify; i++) {
+	Block block[kBlockQuantify1];
+	for (int i = 0; i < kBlockQuantify1; i++) {
 
 
 
@@ -619,14 +619,78 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	Novice::Initialize(kWindowTitle, kWindowWidth, kWindowHeight);
 
-	int playerTx = Novice::LoadTexture("white1x1.png");
+	int playerHandle[3] =
+	{
+
+		Novice::LoadTexture("./Resources/HOPPER player1.png"),
+		Novice::LoadTexture("./Resources/HOPPER player2.png"),
+		Novice::LoadTexture("./Resources/HOPPER player3.png"),
+	};
+
+	int currentPlayerTx = playerHandle[0];//プレイヤー画像
 
 	int jumpChargeCount = 0;
+
+	int jumpCount = 0;
 
 	int jumpAudio = Novice::LoadAudio("./Resources/Sound/jump.wav");
 
 	int jumpAudioHandle = -1;
 
+	enum SCENE {
+		GAME_TITLE,//0
+		GAME_PLAY,//
+		GAME_CLEAR,//2
+		GAME_OVER,//3
+
+	};
+
+	//シーン遷移の値格納用変数
+	int sceneNumber = 0;
+
+	//スタート画面のエンターを押したときのSE読み込み
+	int pressEnterAudio = Novice::LoadAudio("./Resources/Sound/Enter_sounds.wav");
+
+	int pressEnterAudioHandle = -1;
+
+	int pressEnterTimer = 0;
+
+	//エンターが押されたかどうか
+	bool isPressEnter = false;
+
+
+	//BGM読み込み用の変数
+	int gameTitleAudio = Novice::LoadAudio("./Resources/Sound/Game_Title_BGM.wav");
+
+	int gamePlayAudio = Novice::LoadAudio("./Resources/Sound/Game_Play_BGM.wav");
+
+	int playHandle_gameTitle = -1;
+
+	int playHandle_gamePlay = -1;
+
+	//int playHandle_gameOver = -1;
+
+	//int playHandle_gameResult = -1;
+
+	// //ゲームオーバー画面のBGM読み込み
+	// int gameOverAudio = Novice::LoadAudio("./Resources/Sound/gameover.wav");
+
+
+	//アニメーションの移動速度
+	int animationspeed = 2;
+
+	//壁の初期座標
+	int wallPosX = 0;
+
+	int blockTx = Novice::LoadTexture("white1x1.png");
+
+	int TITLETexture = Novice::LoadTexture("./Resources/HOPPER Title.png");
+
+	int PLAYTexture = Novice::LoadTexture("./Resources/background.png");
+
+	int RESULTTexture = Novice::LoadTexture("./Resources/HOPPER CLEAR.png");
+
+	int GAME_OVERTexture = Novice::LoadTexture("./Resources/HOPPER OVER.png");
 
 	// キー入力結果を受け取る箱
 	char keys[256] = { 0 };
@@ -645,525 +709,740 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		/// ↓更新処理ここから
 		///
 
-		player.leftTop.x = player.centerPosition.x - player.halfWidth;//左上X座標
-		player.leftTop.y = player.centerPosition.y - player.halfHeight;//左上Y座標
-		player.rightTop.x = player.centerPosition.x + player.halfWidth;//右上X座標
-		player.rightTop.y = player.centerPosition.y - player.halfHeight;//右上Y座標
-		player.leftBottom.x = player.centerPosition.x - player.halfWidth;//左下X座標
-		player.leftBottom.y = player.centerPosition.y + player.halfHeight;//左下Y座標
-		player.rightBottom.x = player.centerPosition.x + player.halfWidth;//右下X座標
-		player.rightBottom.y = player.centerPosition.y + player.halfHeight;//右下Y座標
+		switch (sceneNumber) {
+
+		case GAME_TITLE:
+
+			//BGMを再生するための処理
+			if (Novice::IsPlayingAudio(playHandle_gameTitle) == 0 && pressEnterTimer == 0) {
+				playHandle_gameTitle = Novice::PlayAudio(gameTitleAudio, true, 1.0f);
+			}
+
+			//エンターを押したとき効果音が流れる（BGMの再生を停止してから）、
+			if (keys[DIK_RETURN] && !preKeys[DIK_RETURN]) {
+				if (Novice::IsPlayingAudio(pressEnterAudioHandle) == 0) {
+
+					Novice::StopAudio(playHandle_gameTitle);
+
+					wallPosX = -kWindowWidth - 560;
+
+					pressEnterAudioHandle = Novice::PlayAudio(pressEnterAudio, false, 0.5f);
+				}
+				isPressEnter = true;
+
+			}
+
+			//エンターを押したとき秒数カウント用変数が始動する
+			if (isPressEnter) {
+				pressEnterTimer++;
+			}
+
+			//2秒後に次のシーンに切り替わる
+			if (pressEnterTimer == 120) {
+
+				//プレイヤの座標をリセット
+				player.centerPosition.x = 32;
+				player.centerPosition.y = 400;
+
+				sceneNumber = 1;
+				pressEnterTimer = 0;
+				isPressEnter = false;
+			}
+			break;
+
+		case GAME_PLAY:
+
+			if (player.centerPosition.x > 1280 - 16) {
+
+				sceneNumber = GAME_CLEAR;
+
+			}
 
 
-		player.velocity.y += player.acceleration.y;
 
-		player.centerPosition.y -= player.velocity.y;
+			//BGMを再生するための処理
+			if (Novice::IsPlayingAudio(playHandle_gamePlay) == 0 && pressEnterTimer == 0) {
+				playHandle_gamePlay = Novice::PlayAudio(gamePlayAudio, true, 1.0f);
+			}
 
-		player.centerPosition.x += player.velocity.x;
+			if (keys[DIK_RETURN] && !preKeys[DIK_RETURN]) {
+				if (Novice::IsPlayingAudio(pressEnterAudioHandle) == 0) {
+
+					Novice::StopAudio(playHandle_gamePlay);
+
+					pressEnterAudioHandle = Novice::PlayAudio(pressEnterAudio, false, 0.5f);
+				}
+
+				isPressEnter = true;
+
+			}
+
+			//エンターを押したとき秒数カウント用変数に1フレにつき+1する
+			if (isPressEnter) {
+				pressEnterTimer++;
+			}
+
+			//1秒後に次のシーンに切り替わる
+			if (pressEnterTimer == 60) {
+				sceneNumber = 2;
+				pressEnterTimer = 0;
+				isPressEnter = false;
+			}
+
+			//壁の移動処理
+			wallPosX += animationspeed;
+
+			if (wallPosX > 0) {
+				wallPosX = 0;
+
+			}
+
+			//壁の当たり判定
+			if (wallPosX + 1280 > player.centerPosition.x - player.halfWidth) {
+				sceneNumber = GAME_OVER;
+
+			}
+
+			player.leftTop.x = player.centerPosition.x - player.halfWidth;//左上X座標
+			player.leftTop.y = player.centerPosition.y - player.halfHeight;//左上Y座標
+			player.rightTop.x = player.centerPosition.x + player.halfWidth;//右上X座標
+			player.rightTop.y = player.centerPosition.y - player.halfHeight;//右上Y座標
+			player.leftBottom.x = player.centerPosition.x - player.halfWidth;//左下X座標
+			player.leftBottom.y = player.centerPosition.y + player.halfHeight;//左下Y座標
+			player.rightBottom.x = player.centerPosition.x + player.halfWidth;//右下X座標
+			player.rightBottom.y = player.centerPosition.y + player.halfHeight;//右下Y座標
 
 
-		/////////////////////////////////////////block/////////////////////////////////////////////
+			player.velocity.y += player.acceleration.y;
 
-		for (int i = 0; i < kBlockQuantify; i++) {
-			if (block[i].leftT.x < player.rightBottom.x && player.leftTop.x < block[i].rightB.x) {
-				if (player.centerPosition.y > block[i].leftT.y - player.halfHeight) {
-					if (player.centerPosition.y + player.halfHeight < block[i].leftB.y) {
-						player.centerPosition.y = block[i].leftT.y - player.halfHeight;
-						player.velocity.x = 0;
+			player.centerPosition.y -= player.velocity.y;
+
+			player.centerPosition.x += player.velocity.x;
+
+
+			/////////////////////////////////////////block/////////////////////////////////////////////
+
+			//床の当たり判定(上の辺)
+			for (int i = 0; i < kBlockQuantify1; i++) {
+
+				if (block[i].leftT.x < player.rightBottom.x && player.leftTop.x < block[i].rightB.x) {
+
+					if (player.centerPosition.y > block[i].leftT.y - player.halfHeight) {
+
+						if (player.centerPosition.y + player.halfHeight < block[i].leftB.y) {
+
+							currentPlayerTx = playerHandle[0];
+
+							player.centerPosition.y = block[i].leftT.y - player.halfHeight;
+							player.velocity.x = 0;
+							player.velocity.y = 0;
+
+							jumpCount = 0;
+						}
+
+					}
+				}
+			}
+			//床の当たり判定(下の辺)
+			for (int i = 0; i < kBlockQuantify1; i++) {
+
+				//ブロックの左上Xがプレイヤの右下Xより小さい&&プレイヤの左下Xがブロックの右下Xより小さい
+				if (block[i].leftT.x < player.rightBottom.x && player.leftTop.x < block[i].rightB.x) {
+
+					//プレイヤの左上Yがブロックの左下Yより小さい&&ブロックの右上Yがプレイヤの左上Yより小さい
+					if (player.leftTop.y < block[i].leftB.y && block[i].rightT.y < player.leftTop.y) {
+
+						player.centerPosition.y = block[i].leftB.y + player.halfHeight;
+
 						player.velocity.y = 0;
+
+
+					}
+				}
+			}
+
+			//====================================================
+			//床の当たり判定(上の辺)
+			for (int i = 0; i < kBlockQuantify2; i++) {
+
+				if (block2[i].leftT.x < player.rightBottom.x && player.leftTop.x < block2[i].rightB.x) {
+
+					if (player.centerPosition.y > block2[i].leftT.y - player.halfHeight) {
+
+						if (player.centerPosition.y + player.halfHeight < block2[i].leftB.y) {
+
+							currentPlayerTx = playerHandle[0];
+
+							player.centerPosition.y = block2[i].leftT.y - player.halfHeight;
+							player.velocity.x = 0;
+							player.velocity.y = 0;
+
+							jumpCount = 0;
+						}
+
+					}
+				}
+			}
+			//床の当たり判定(下の辺)
+			for (int i = 0; i < kBlockQuantify2; i++) {
+
+				//ブロックの左上Xがプレイヤの右下Xより小さい&&プレイヤの左下Xがブロックの右下Xより小さい
+				if (block2[i].leftT.x < player.rightBottom.x && player.leftTop.x < block2[i].rightB.x) {
+
+					//プレイヤの左上Yがブロックの左下Yより小さい&&ブロックの右上Yがプレイヤの左上Yより小さい
+					if (player.leftTop.y < block2[i].leftB.y && block2[i].rightT.y < player.leftTop.y) {
+
+						player.centerPosition.y = block2[i].leftB.y + player.halfHeight;
+
+						player.velocity.y = 0;
+
+
+					}
+				}
+			}
+
+
+			//床の当たり判定(上の辺)
+			for (int i = 0; i < kBlockQuantify2; i++) {
+
+				if (block6[i].leftT.x < player.rightBottom.x && player.leftTop.x < block6[i].rightB.x) {
+
+					if (player.centerPosition.y > block6[i].leftT.y - player.halfHeight) {
+
+						if (player.centerPosition.y + player.halfHeight < block6[i].leftB.y) {
+
+							currentPlayerTx = playerHandle[0];
+
+							player.centerPosition.y = block6[i].leftT.y - player.halfHeight;
+							player.velocity.x = 0;
+							player.velocity.y = 0;
+
+							jumpCount = 0;
+						}
+
+					}
+				}
+			}
+			//床の当たり判定(下の辺)
+			for (int i = 0; i < kBlockQuantify2; i++) {
+
+				//ブロックの左上Xがプレイヤの右下Xより小さい&&プレイヤの左下Xがブロックの右下Xより小さい
+				if (block6[i].leftT.x < player.rightBottom.x && player.leftTop.x < block6[i].rightB.x) {
+
+					//プレイヤの左上Yがブロックの左下Yより小さい&&ブロックの右上Yがプレイヤの左上Yより小さい
+					if (player.leftTop.y < block6[i].leftB.y && block6[i].rightT.y < player.leftTop.y) {
+
+						player.centerPosition.y = block6[i].leftB.y + player.halfHeight;
+
+						player.velocity.y = 0;
+
+
+					}
+				}
+			}
+
+
+
+
+			//床の当たり判定(上の辺)
+			for (int i = 0; i < kBlockQuantify3; i++) {
+
+				if (block3[i].leftT.x < player.rightBottom.x && player.leftTop.x < block3[i].rightB.x) {
+
+					if (player.centerPosition.y > block3[i].leftT.y - player.halfHeight) {
+
+						if (player.centerPosition.y + player.halfHeight < block3[i].leftB.y) {
+
+							currentPlayerTx = playerHandle[0];
+
+							player.centerPosition.y = block3[i].leftT.y - player.halfHeight;
+							player.velocity.x = 0;
+							player.velocity.y = 0;
+
+							jumpCount = 0;
+						}
+
+					}
+				}
+			}
+			//床の当たり判定(下の辺)
+			for (int i = 0; i < kBlockQuantify3; i++) {
+
+				//ブロックの左上Xがプレイヤの右下Xより小さい&&プレイヤの左下Xがブロックの右下Xより小さい
+				if (block3[i].leftT.x < player.rightBottom.x && player.leftTop.x < block3[i].rightB.x) {
+
+					//プレイヤの左上Yがブロックの左下Yより小さい&&ブロックの右上Yがプレイヤの左上Yより小さい
+					if (player.leftTop.y < block3[i].leftB.y && block3[i].rightT.y < player.leftTop.y) {
+
+						player.centerPosition.y = block[i].leftB.y + player.halfHeight;
+
+						player.velocity.y = 0;
+
+
+					}
+				}
+			}
+
+			//床の当たり判定(上の辺)
+			for (int i = 0; i < kBlockQuantify3; i++) {
+
+				if (block4[i].leftT.x < player.rightBottom.x && player.leftTop.x < block4[i].rightB.x) {
+
+					if (player.centerPosition.y > block4[i].leftT.y - player.halfHeight) {
+
+						if (player.centerPosition.y + player.halfHeight < block4[i].leftB.y) {
+
+							currentPlayerTx = playerHandle[0];
+
+							player.centerPosition.y = block4[i].leftT.y - player.halfHeight;
+							player.velocity.x = 0;
+							player.velocity.y = 0;
+
+							jumpCount = 0;
+						}
+
+					}
+				}
+			}
+			//床の当たり判定(下の辺)
+			for (int i = 0; i < kBlockQuantify3; i++) {
+
+				//ブロックの左上Xがプレイヤの右下Xより小さい&&プレイヤの左下Xがブロックの右下Xより小さい
+				if (block4[i].leftT.x < player.rightBottom.x && player.leftTop.x < block4[i].rightB.x) {
+
+					//プレイヤの左上Yがブロックの左下Yより小さい&&ブロックの右上Yがプレイヤの左上Yより小さい
+					if (player.leftTop.y < block4[i].leftB.y && block4[i].rightT.y < player.leftTop.y) {
+
+						player.centerPosition.y = block4[i].leftB.y + player.halfHeight;
+
+						player.velocity.y = 0;
+
+
+					}
+				}
+			}
+
+			//床の当たり判定(上の辺)
+			for (int i = 0; i < kBlockQuantify4; i++) {
+
+				if (block5[i].leftT.x < player.rightBottom.x && player.leftTop.x < block5[i].rightB.x) {
+
+					if (player.centerPosition.y > block5[i].leftT.y - player.halfHeight) {
+
+						if (player.centerPosition.y + player.halfHeight < block5[i].leftB.y) {
+
+							currentPlayerTx = playerHandle[0];
+
+							player.centerPosition.y = block5[i].leftT.y - player.halfHeight;
+							player.velocity.x = 0;
+							player.velocity.y = 0;
+
+							jumpCount = 0;
+						}
+
+					}
+				}
+			}
+			//床の当たり判定(下の辺)
+			for (int i = 0; i < kBlockQuantify4; i++) {
+
+				//ブロックの左上Xがプレイヤの右下Xより小さい&&プレイヤの左下Xがブロックの右下Xより小さい
+				if (block5[i].leftT.x < player.rightBottom.x && player.leftTop.x < block5[i].rightB.x) {
+
+					//プレイヤの左上Yがブロックの左下Yより小さい&&ブロックの右上Yがプレイヤの左上Yより小さい
+					if (player.leftTop.y < block5[i].leftB.y && block5[i].rightT.y < player.leftTop.y) {
+
+						player.centerPosition.y = block5[i].leftB.y + player.halfHeight;
+
+						player.velocity.y = 0;
+
+
+					}
+				}
+			}
+
+			//床の当たり判定(上の辺)
+			for (int i = 0; i < kBlockQuantify4; i++) {
+
+				if (block13[i].leftT.x < player.rightBottom.x && player.leftTop.x < block13[i].rightB.x) {
+
+					if (player.centerPosition.y > block13[i].leftT.y - player.halfHeight) {
+
+						if (player.centerPosition.y + player.halfHeight < block13[i].leftB.y) {
+
+							currentPlayerTx = playerHandle[0];
+
+							player.centerPosition.y = block13[i].leftT.y - player.halfHeight;
+							player.velocity.x = 0;
+							player.velocity.y = 0;
+
+							jumpCount = 0;
+						}
+
+					}
+				}
+			}
+			//床の当たり判定(下の辺)
+			for (int i = 0; i < kBlockQuantify4; i++) {
+
+				//ブロックの左上Xがプレイヤの右下Xより小さい&&プレイヤの左下Xがブロックの右下Xより小さい
+				if (block13[i].leftT.x < player.rightBottom.x && player.leftTop.x < block13[i].rightB.x) {
+
+					//プレイヤの左上Yがブロックの左下Yより小さい&&ブロックの右上Yがプレイヤの左上Yより小さい
+					if (player.leftTop.y < block13[i].leftB.y && block13[i].rightT.y < player.leftTop.y) {
+
+						player.centerPosition.y = block13[i].leftB.y + player.halfHeight;
+
+						player.velocity.y = 0;
+
+
+					}
+				}
+			}
+
+			//床の当たり判定(上の辺)
+			for (int i = 0; i < kBlockQuantify5; i++) {
+
+				if (block7[i].leftT.x < player.rightBottom.x && player.leftTop.x < block7[i].rightB.x) {
+
+					if (player.centerPosition.y > block7[i].leftT.y - player.halfHeight) {
+
+						if (player.centerPosition.y + player.halfHeight < block7[i].leftB.y) {
+
+							currentPlayerTx = playerHandle[0];
+
+							player.centerPosition.y = block7[i].leftT.y - player.halfHeight;
+							player.velocity.x = 0;
+							player.velocity.y = 0;
+
+							jumpCount = 0;
+						}
+
+					}
+				}
+			}
+			//床の当たり判定(下の辺)
+			for (int i = 0; i < kBlockQuantify5; i++) {
+
+				//ブロックの左上Xがプレイヤの右下Xより小さい&&プレイヤの左下Xがブロックの右下Xより小さい
+				if (block7[i].leftT.x < player.rightBottom.x && player.leftTop.x < block7[i].rightB.x) {
+
+					//プレイヤの左上Yがブロックの左下Yより小さい&&ブロックの右上Yがプレイヤの左上Yより小さい
+					if (player.leftTop.y < block7[i].leftB.y && block7[i].rightT.y < player.leftTop.y) {
+
+						player.centerPosition.y = block7[i].leftB.y + player.halfHeight;
+
+						player.velocity.y = 0;
+
+
+					}
+				}
+			}
+
+			//床の当たり判定(上の辺)
+			for (int i = 0; i < kBlockQuantify5; i++) {
+
+				if (block9[i].leftT.x < player.rightBottom.x && player.leftTop.x < block9[i].rightB.x) {
+
+					if (player.centerPosition.y > block9[i].leftT.y - player.halfHeight) {
+
+						if (player.centerPosition.y + player.halfHeight < block9[i].leftB.y) {
+
+							currentPlayerTx = playerHandle[0];
+
+							player.centerPosition.y = block9[i].leftT.y - player.halfHeight;
+							player.velocity.x = 0;
+							player.velocity.y = 0;
+
+							jumpCount = 0;
+						}
+
+					}
+				}
+			}
+			//床の当たり判定(下の辺)
+			for (int i = 0; i < kBlockQuantify5; i++) {
+
+				//ブロックの左上Xがプレイヤの右下Xより小さい&&プレイヤの左下Xがブロックの右下Xより小さい
+				if (block9[i].leftT.x < player.rightBottom.x && player.leftTop.x < block9[i].rightB.x) {
+
+					//プレイヤの左上Yがブロックの左下Yより小さい&&ブロックの右上Yがプレイヤの左上Yより小さい
+					if (player.leftTop.y < block9[i].leftB.y && block9[i].rightT.y < player.leftTop.y) {
+
+						player.centerPosition.y = block9[i].leftB.y + player.halfHeight;
+
+						player.velocity.y = 0;
+
+
+					}
+				}
+			}
+
+			//床の当たり判定(上の辺)
+			for (int i = 0; i < kBlockQuantify5; i++) {
+
+				if (block10[i].leftT.x < player.rightBottom.x && player.leftTop.x < block10[i].rightB.x) {
+
+					if (player.centerPosition.y > block10[i].leftT.y - player.halfHeight) {
+
+						if (player.centerPosition.y + player.halfHeight < block10[i].leftB.y) {
+
+							currentPlayerTx = playerHandle[0];
+
+							player.centerPosition.y = block10[i].leftT.y - player.halfHeight;
+							player.velocity.x = 0;
+							player.velocity.y = 0;
+
+							jumpCount = 0;
+						}
+
+					}
+				}
+			}
+			//床の当たり判定(下の辺)
+			for (int i = 0; i < kBlockQuantify5; i++) {
+
+				//ブロックの左上Xがプレイヤの右下Xより小さい&&プレイヤの左下Xがブロックの右下Xより小さい
+				if (block10[i].leftT.x < player.rightBottom.x && player.leftTop.x < block10[i].rightB.x) {
+
+					//プレイヤの左上Yがブロックの左下Yより小さい&&ブロックの右上Yがプレイヤの左上Yより小さい
+					if (player.leftTop.y < block10[i].leftB.y && block10[i].rightT.y < player.leftTop.y) {
+
+						player.centerPosition.y = block10[i].leftB.y + player.halfHeight;
+
+						player.velocity.y = 0;
+
+
+					}
+				}
+			}
+
+
+			//床の当たり判定(上の辺)
+			for (int i = 0; i < kBlockQuantify6; i++) {
+
+				if (block8[i].leftT.x < player.rightBottom.x && player.leftTop.x < block8[i].rightB.x) {
+
+					if (player.centerPosition.y > block8[i].leftT.y - player.halfHeight) {
+
+						if (player.centerPosition.y + player.halfHeight < block8[i].leftB.y) {
+
+							currentPlayerTx = playerHandle[0];
+
+							player.centerPosition.y = block8[i].leftT.y - player.halfHeight;
+							player.velocity.x = 0;
+							player.velocity.y = 0;
+
+							jumpCount = 0;
+						}
+
+					}
+				}
+			}
+			//床の当たり判定(下の辺)
+			for (int i = 0; i < kBlockQuantify6; i++) {
+
+				//ブロックの左上Xがプレイヤの右下Xより小さい&&プレイヤの左下Xがブロックの右下Xより小さい
+				if (block8[i].leftT.x < player.rightBottom.x && player.leftTop.x < block8[i].rightB.x) {
+
+					//プレイヤの左上Yがブロックの左下Yより小さい&&ブロックの右上Yがプレイヤの左上Yより小さい
+					if (player.leftTop.y < block8[i].leftB.y && block8[i].rightT.y < player.leftTop.y) {
+
+						player.centerPosition.y = block8[i].leftB.y + player.halfHeight;
+
+						player.velocity.y = 0;
+
+
+					}
+				}
+			}
+
+			//床の当たり判定(上の辺)
+			for (int i = 0; i < kBlockQuantify6; i++) {
+
+				if (block11[i].leftT.x < player.rightBottom.x && player.leftTop.x < block11[i].rightB.x) {
+
+					if (player.centerPosition.y > block11[i].leftT.y - player.halfHeight) {
+
+						if (player.centerPosition.y + player.halfHeight < block11[i].leftB.y) {
+
+							currentPlayerTx = playerHandle[0];
+
+							player.centerPosition.y = block11[i].leftT.y - player.halfHeight;
+							player.velocity.x = 0;
+							player.velocity.y = 0;
+
+							jumpCount = 0;
+						}
+
+					}
+				}
+			}
+			//床の当たり判定(下の辺)
+			for (int i = 0; i < kBlockQuantify6; i++) {
+
+				//ブロックの左上Xがプレイヤの右下Xより小さい&&プレイヤの左下Xがブロックの右下Xより小さい
+				if (block11[i].leftT.x < player.rightBottom.x && player.leftTop.x < block11[i].rightB.x) {
+
+					//プレイヤの左上Yがブロックの左下Yより小さい&&ブロックの右上Yがプレイヤの左上Yより小さい
+					if (player.leftTop.y < block11[i].leftB.y && block11[i].rightT.y < player.leftTop.y) {
+
+						player.centerPosition.y = block11[i].leftB.y + player.halfHeight;
+
+						player.velocity.y = 0;
+
+
+					}
+				}
+			}
+
+
+			//床の当たり判定(上の辺)
+			for (int i = 0; i < kBlockQuantify6; i++) {
+
+				if (block12[i].leftT.x < player.rightBottom.x && player.leftTop.x < block12[i].rightB.x) {
+
+					if (player.centerPosition.y > block12[i].leftT.y - player.halfHeight) {
+
+						if (player.centerPosition.y + player.halfHeight < block12[i].leftB.y) {
+
+							currentPlayerTx = playerHandle[0];
+
+							player.centerPosition.y = block12[i].leftT.y - player.halfHeight;
+							player.velocity.x = 0;
+							player.velocity.y = 0;
+
+							jumpCount = 0;
+						}
+
+					}
+				}
+			}
+			//床の当たり判定(下の辺)
+			for (int i = 0; i < kBlockQuantify6; i++) {
+
+				//ブロックの左上Xがプレイヤの右下Xより小さい&&プレイヤの左下Xがブロックの右下Xより小さい
+				if (block12[i].leftT.x < player.rightBottom.x && player.leftTop.x < block12[i].rightB.x) {
+
+					//プレイヤの左上Yがブロックの左下Yより小さい&&ブロックの右上Yがプレイヤの左上Yより小さい
+					if (player.leftTop.y < block12[i].leftB.y && block12[i].rightT.y < player.leftTop.y) {
+
+						player.centerPosition.y = block12[i].leftB.y + player.halfHeight;
+
+						player.velocity.y = 0;
+
+
+					}
+				}
+			}
+
+
+
+			if (jumpCount < 2) {
+				if (keys[DIK_SPACE]) {
+					currentPlayerTx = playerHandle[1];
+					jumpChargeCount++;
+
+				}
+
+
+				//キーが離れた瞬間に速度と加速度が付与される
+				if (keys[DIK_SPACE] == 0 && preKeys[DIK_SPACE]) {
+
+					currentPlayerTx = playerHandle[2];
+
+					jumpCount++;
+
+					if (jumpChargeCount < 30) {//長押しするほどジャンプ力が上がる
+						player.velocity.y = 15.0f;
+
+						player.velocity.x = 2.0f;
+
+					}
+					else if (jumpChargeCount > 31) {
+						player.velocity.y = 20;
+
+						player.velocity.x = 3;
+					}
+					player.acceleration.y = -0.8f;
+
+					if (Novice::IsPlayingAudio(jumpAudioHandle) == 0) {
+						jumpAudioHandle = Novice::PlayAudio(jumpAudio, false, 1.0f);
+
 					}
 
-				}
-			}
-		}
 
-		////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-		/////////////////////////////////////////block2/////////////////////////////////////////////
-
-		for (int i = 0; i < kBlockQuantify2; i++) {
-			if (block2[i].leftT.x < player.rightBottom.x && player.leftTop.x < block2[i].rightB.x) {
-				if (player.centerPosition.y > block2[i].leftT.y - player.halfHeight) {
-					if (player.centerPosition.y + player.halfHeight < block2[i].leftB.y) {
-						player.centerPosition.y = block2[i].leftT.y - player.halfHeight;
-						player.velocity.x = 0;
-						player.velocity.y = 0;
-					}
+					jumpChargeCount = 0;
 
 				}
 			}
-		}
 
 
-		////床の当たり判定(下の辺)
-		//for (int i = 0; i < kBlockQuantify2; i++) {
 
-		//	//ブロックの左上Xがプレイヤの右下Xより小さい&&プレイヤの左下Xがブロックの右下Xより小さい
-		//	if (block2[i].leftT.x < player.rightBottom.x && player.leftTop.x < block2[i].rightB.x) {
 
-		//		//プレイヤの左上Yがブロックの左下Yより小さい&&ブロックの右上Yがプレイヤの左上Yより小さい
-		//		if (player.leftTop.y < block2[i].leftB.y && block2[i].rightT.y < player.leftTop.y) {
+			if (player.centerPosition.y > kWindowHeight - player.halfHeight) {
 
-		//			player.centerPosition.y = block2[i].leftB.y + player.halfHeight;
+				player.centerPosition.y = float(kWindowHeight - player.halfHeight);
 
-		//			player.velocity.y = 0;
-		//		}
-		//	}
-		//}
+				player.velocity.y = 0;
 
-		////////////////////////////////////////////////////////////////////////////////////////////
+				player.acceleration.y = 0;
 
+				player.velocity.x = 0;
 
-
-		/////////////////////////////////////////block3/////////////////////////////////////////////
-
-		for (int i = 0; i < kBlockQuantify3; i++) {
-			if (block3[i].leftT.x < player.rightBottom.x && player.leftTop.x < block3[i].rightB.x) {
-				if (player.centerPosition.y > block3[i].leftT.y - player.halfHeight) {
-					if (player.centerPosition.y + player.halfHeight < block3[i].leftB.y) {
-						player.centerPosition.y = block3[i].leftT.y - player.halfHeight;
-						player.velocity.x = 0;
-						player.velocity.y = 0;
-					}
-
-				}
-			}
-		}
-
-
-		//床の当たり判定(下の辺)
-		for (int i = 0; i < kBlockQuantify3; i++) {
-
-			//ブロックの左上Xがプレイヤの右下Xより小さい&&プレイヤの左下Xがブロックの右下Xより小さい
-			if (block3[i].leftT.x < player.rightBottom.x && player.leftTop.x < block3[i].rightB.x) {
-
-				//プレイヤの左上Yがブロックの左下Yより小さい&&ブロックの右上Yがプレイヤの左上Yより小さい
-				if (player.leftTop.y < block3[i].leftB.y && block3[i].rightT.y < player.leftTop.y) {
-
-					player.centerPosition.y = block3[i].leftB.y + player.halfHeight;
-
-					player.velocity.y = 0;
-				}
-			}
-		}
-
-		////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-		/////////////////////////////////////////block4/////////////////////////////////////////////
-
-		for (int i = 0; i < kBlockQuantify3; i++) {
-			if (block4[i].leftT.x < player.rightBottom.x && player.leftTop.x < block4[i].rightB.x) {
-				if (player.centerPosition.y > block4[i].leftT.y - player.halfHeight) {
-					if (player.centerPosition.y + player.halfHeight < block4[i].leftB.y) {
-						player.centerPosition.y = block4[i].leftT.y - player.halfHeight;
-						player.velocity.x = 0;
-						player.velocity.y = 0;
-					}
-
-				}
-			}
-		}
-
-
-		//床の当たり判定(下の辺)
-		for (int i = 0; i < kBlockQuantify3; i++) {
-
-			//ブロックの左上Xがプレイヤの右下Xより小さい&&プレイヤの左下Xがブロックの右下Xより小さい
-			if (block4[i].leftT.x < player.rightBottom.x && player.leftTop.x < block4[i].rightB.x) {
-
-				//プレイヤの左上Yがブロックの左下Yより小さい&&ブロックの右上Yがプレイヤの左上Yより小さい
-				if (player.leftTop.y < block4[i].leftB.y && block4[i].rightT.y < player.leftTop.y) {
-
-					player.centerPosition.y = block4[i].leftB.y + player.halfHeight;
-
-					player.velocity.y = 0;
-				}
-			}
-		}
-
-		////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-		/////////////////////////////////////////block5/////////////////////////////////////////////
-
-		for (int i = 0; i < kBlockQuantify4; i++) {
-			if (block5[i].leftT.x < player.rightBottom.x && player.leftTop.x < block5[i].rightB.x) {
-				if (player.centerPosition.y > block5[i].leftT.y - player.halfHeight) {
-					if (player.centerPosition.y + player.halfHeight < block5[i].leftB.y) {
-						player.centerPosition.y = block5[i].leftT.y - player.halfHeight;
-						player.velocity.x = 0;
-						player.velocity.y = 0;
-					}
-
-				}
-			}
-		}
-
-		//床の当たり判定(下の辺)
-		for (int i = 0; i < kBlockQuantify4; i++) {
-
-			//ブロックの左上Xがプレイヤの右下Xより小さい&&プレイヤの左下Xがブロックの右下Xより小さい
-			if (block5[i].leftT.x < player.rightBottom.x && player.leftTop.x < block5[i].rightB.x) {
-
-				//プレイヤの左上Yがブロックの左下Yより小さい&&ブロックの右上Yがプレイヤの左上Yより小さい
-				if (player.leftTop.y < block5[i].leftB.y && block5[i].rightT.y < player.leftTop.y) {
-
-					player.centerPosition.y = block5[i].leftB.y + player.halfHeight;
-
-					player.velocity.y = 0;
-				}
-			}
-		}
-
-		////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-		 /////////////////////////////////////////block6/////////////////////////////////////////////
-
-		for (int i = 0; i < kBlockQuantify2; i++) {
-			if (block6[i].leftT.x < player.rightBottom.x && player.leftTop.x < block6[i].rightB.x) {
-				if (player.centerPosition.y > block6[i].leftT.y - player.halfHeight) {
-					if (player.centerPosition.y + player.halfHeight < block6[i].leftB.y) {
-						player.centerPosition.y = block6[i].leftT.y - player.halfHeight;
-						player.velocity.x = 0;
-						player.velocity.y = 0;
-					}
-
-				}
-			}
-		}
-
-
-		//床の当たり判定(下の辺)
-		for (int i = 0; i < kBlockQuantify2; i++) {
-
-			//ブロックの左上Xがプレイヤの右下Xより小さい&&プレイヤの左下Xがブロックの右下Xより小さい
-			if (block6[i].leftT.x < player.rightBottom.x && player.leftTop.x < block6[i].rightB.x) {
-
-				//プレイヤの左上Yがブロックの左下Yより小さい&&ブロックの右上Yがプレイヤの左上Yより小さい
-				if (player.leftTop.y < block6[i].leftB.y && block6[i].rightT.y < player.leftTop.y) {
-
-					player.centerPosition.y = block6[i].leftB.y + player.halfHeight;
-
-					player.velocity.y = 0;
-				}
-			}
-		}
-
-		////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-		/////////////////////////////////////////block7/////////////////////////////////////////////
-
-		for (int i = 0; i < kBlockQuantify5; i++) {
-			if (block7[i].leftT.x < player.rightBottom.x && player.leftTop.x < block7[i].rightB.x) {
-				if (player.centerPosition.y > block7[i].leftT.y - player.halfHeight) {
-					if (player.centerPosition.y + player.halfHeight < block7[i].leftB.y) {
-						player.centerPosition.y = block7[i].leftT.y - player.halfHeight;
-						player.velocity.x = 0;
-						player.velocity.y = 0;
-					}
-
-				}
-			}
-		}
-
-		//床の当たり判定(下の辺)
-		for (int i = 0; i < kBlockQuantify5; i++) {
-
-			//ブロックの左上Xがプレイヤの右下Xより小さい&&プレイヤの左下Xがブロックの右下Xより小さい
-			if (block7[i].leftT.x < player.rightBottom.x && player.leftTop.x < block7[i].rightB.x) {
-
-				//プレイヤの左上Yがブロックの左下Yより小さい&&ブロックの右上Yがプレイヤの左上Yより小さい
-				if (player.leftTop.y < block7[i].leftB.y && block7[i].rightT.y < player.leftTop.y) {
-
-					player.centerPosition.y = block7[i].leftB.y + player.halfHeight;
-
-					player.velocity.y = 0;
-				}
-			}
-		}
-
-
-		////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-		/////////////////////////////////////////block8/////////////////////////////////////////////
-
-		for (int i = 0; i < kBlockQuantify6; i++) {
-			if (block8[i].leftT.x < player.rightBottom.x && player.leftTop.x < block8[i].rightB.x) {
-				if (player.centerPosition.y > block8[i].leftT.y - player.halfHeight) {
-					if (player.centerPosition.y + player.halfHeight < block8[i].leftB.y) {
-						player.centerPosition.y = block8[i].leftT.y - player.halfHeight;
-						player.velocity.x = 0;
-						player.velocity.y = 0;
-					}
-
-				}
-			}
-		}
-
-
-		//床の当たり判定(下の辺)
-		for (int i = 0; i < kBlockQuantify6; i++) {
-
-			//ブロックの左上Xがプレイヤの右下Xより小さい&&プレイヤの左下Xがブロックの右下Xより小さい
-			if (block8[i].leftT.x < player.rightBottom.x && player.leftTop.x < block8[i].rightB.x) {
-
-				//プレイヤの左上Yがブロックの左下Yより小さい&&ブロックの右上Yがプレイヤの左上Yより小さい
-				if (player.leftTop.y < block8[i].leftB.y && block8[i].rightT.y < player.leftTop.y) {
-
-					player.centerPosition.y = block8[i].leftB.y + player.halfHeight;
-
-					player.velocity.y = 0;
-				}
-			}
-		}
-
-		////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-		/////////////////////////////////////////block9/////////////////////////////////////////////
-
-		for (int i = 0; i < kBlockQuantify5; i++) {
-			if (block9[i].leftT.x < player.rightBottom.x && player.leftTop.x < block9[i].rightB.x) {
-				if (player.centerPosition.y > block9[i].leftT.y - player.halfHeight) {
-					if (player.centerPosition.y + player.halfHeight < block9[i].leftB.y) {
-						player.centerPosition.y = block9[i].leftT.y - player.halfHeight;
-						player.velocity.x = 0;
-						player.velocity.y = 0;
-					}
-
-				}
-			}
-		}
-
-
-		//床の当たり判定(下の辺)
-		for (int i = 0; i < kBlockQuantify5; i++) {
-
-			//ブロックの左上Xがプレイヤの右下Xより小さい&&プレイヤの左下Xがブロックの右下Xより小さい
-			if (block9[i].leftT.x < player.rightBottom.x && player.leftTop.x < block9[i].rightB.x) {
-
-				//プレイヤの左上Yがブロックの左下Yより小さい&&ブロックの右上Yがプレイヤの左上Yより小さい
-				if (player.leftTop.y < block9[i].leftB.y && block9[i].rightT.y < player.leftTop.y) {
-
-					player.centerPosition.y = block9[i].leftB.y + player.halfHeight;
-
-					player.velocity.y = 0;
-				}
-			}
-		}
-
-		/////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-		/////////////////////////////////////////block10/////////////////////////////////////////////
-
-		for (int i = 0; i < kBlockQuantify5; i++) {
-			if (block10[i].leftT.x < player.rightBottom.x && player.leftTop.x < block10[i].rightB.x) {
-				if (player.centerPosition.y > block10[i].leftT.y - player.halfHeight) {
-					if (player.centerPosition.y + player.halfHeight < block10[i].leftB.y) {
-						player.centerPosition.y = block10[i].leftT.y - player.halfHeight;
-						player.velocity.x = 0;
-						player.velocity.y = 0;
-					}
-
-				}
-			}
-		}
-
-
-		//床の当たり判定(下の辺)
-		for (int i = 0; i < kBlockQuantify5; i++) {
-
-			//ブロックの左上Xがプレイヤの右下Xより小さい&&プレイヤの左下Xがブロックの右下Xより小さい
-			if (block10[i].leftT.x < player.rightBottom.x && player.leftTop.x < block10[i].rightB.x) {
-
-				//プレイヤの左上Yがブロックの左下Yより小さい&&ブロックの右上Yがプレイヤの左上Yより小さい
-				if (player.leftTop.y < block10[i].leftB.y && block10[i].rightT.y < player.leftTop.y) {
-
-					player.centerPosition.y = block10[i].leftB.y + player.halfHeight;
-
-					player.velocity.y = 0;
-				}
-			}
-		}
-
-		/////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-		/////////////////////////////////////////block11/////////////////////////////////////////////
-
-		for (int i = 0; i < kBlockQuantify6; i++) {
-			if (block11[i].leftT.x < player.rightBottom.x && player.leftTop.x < block11[i].rightB.x) {
-				if (player.centerPosition.y > block11[i].leftT.y - player.halfHeight) {
-					if (player.centerPosition.y + player.halfHeight < block11[i].leftB.y) {
-						player.centerPosition.y = block11[i].leftT.y - player.halfHeight;
-						player.velocity.x = 0;
-						player.velocity.y = 0;
-					}
-
-				}
-			}
-		}
-
-
-		//床の当たり判定(下の辺)
-		for (int i = 0; i < kBlockQuantify6; i++) {
-
-			//ブロックの左上Xがプレイヤの右下Xより小さい&&プレイヤの左下Xがブロックの右下Xより小さい
-			if (block11[i].leftT.x < player.rightBottom.x && player.leftTop.x < block11[i].rightB.x) {
-
-				//プレイヤの左上Yがブロックの左下Yより小さい&&ブロックの右上Yがプレイヤの左上Yより小さい
-				if (player.leftTop.y < block11[i].leftB.y && block11[i].rightT.y < player.leftTop.y) {
-
-					player.centerPosition.y = block11[i].leftB.y + player.halfHeight;
-
-					player.velocity.y = 0;
-				}
-			}
-		}
-
-		/////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-		/////////////////////////////////////////block12/////////////////////////////////////////////
-
-		for (int i = 0; i < kBlockQuantify6; i++) {
-			if (block12[i].leftT.x < player.rightBottom.x && player.leftTop.x < block12[i].rightB.x) {
-				if (player.centerPosition.y > block12[i].leftT.y - player.halfHeight) {
-					if (player.centerPosition.y + player.halfHeight < block12[i].leftB.y) {
-						player.centerPosition.y = block12[i].leftT.y - player.halfHeight;
-						player.velocity.x = 0;
-						player.velocity.y = 0;
-					}
-
-				}
-			}
-		}
-
-
-		//床の当たり判定(下の辺)
-		for (int i = 0; i < kBlockQuantify6; i++) {
-
-			//ブロックの左上Xがプレイヤの右下Xより小さい&&プレイヤの左下Xがブロックの右下Xより小さい
-			if (block12[i].leftT.x < player.rightBottom.x && player.leftTop.x < block12[i].rightB.x) {
-
-				//プレイヤの左上Yがブロックの左下Yより小さい&&ブロックの右上Yがプレイヤの左上Yより小さい
-				if (player.leftTop.y < block12[i].leftB.y && block12[i].rightT.y < player.leftTop.y) {
-
-					player.centerPosition.y = block12[i].leftB.y + player.halfHeight;
-
-					player.velocity.y = 0;
-				}
-			}
-		}
-
-		/////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-		/////////////////////////////////////////block13/////////////////////////////////////////////
-
-		for (int i = 0; i < kBlockQuantify4; i++) {
-			if (block13[i].leftT.x < player.rightBottom.x && player.leftTop.x < block13[i].rightB.x) {
-				if (player.centerPosition.y > block13[i].leftT.y - player.halfHeight) {
-					if (player.centerPosition.y + player.halfHeight < block13[i].leftB.y) {
-						player.centerPosition.y = block13[i].leftT.y - player.halfHeight;
-						player.velocity.x = 0;
-						player.velocity.y = 0;
-					}
-
-				}
-			}
-		}
-
-
-		//床の当たり判定(下の辺)
-		for (int i = 0; i < kBlockQuantify4; i++) {
-
-			//ブロックの左上Xがプレイヤの右下Xより小さい&&プレイヤの左下Xがブロックの右下Xより小さい
-			if (block13[i].leftT.x < player.rightBottom.x && player.leftTop.x < block13[i].rightB.x) {
-
-				//プレイヤの左上Yがブロックの左下Yより小さい&&ブロックの右上Yがプレイヤの左上Yより小さい
-				if (player.leftTop.y < block13[i].leftB.y && block13[i].rightT.y < player.leftTop.y) {
-
-					player.centerPosition.y = block13[i].leftB.y + player.halfHeight;
-
-					player.velocity.y = 0;
-				}
-			}
-		}
-
-		////////////////////////////////////////////////////////////////////////////////////////////
-
-
-		if (keys[DIK_SPACE] && jumpChargeCount <= 60) {
-			jumpChargeCount++;
-
-		}
-
-
-		//キーが離れた瞬間に速度と加速度が付与される
-		if (keys[DIK_SPACE] == 0 && preKeys[DIK_SPACE]) {
-			if (jumpChargeCount < 30) {//長押しするほどジャンプ力が上がる
-				player.velocity.y = 15.0f;
-
-				player.velocity.x = 2.0f;
-
-			}
-			else if (jumpChargeCount > 31) {
-				player.velocity.y = 20;
-
-				player.velocity.x = 3;
-			}
-			player.acceleration.y = -0.8f;
-
-			if (Novice::IsPlayingAudio(jumpAudioHandle) == 0) {
-				jumpAudioHandle = Novice::PlayAudio(jumpAudio, false, 1.0f);
-
+				player.acceleration.x = 0;
 			}
 
 
-			jumpChargeCount = 0;
+
+			break;
+
+		case GAME_CLEAR:
+			if (keys[DIK_RETURN] && !preKeys[DIK_RETURN]) {
+
+				isPressEnter = true;
+
+			}
+
+			//エンターを押したとき秒数カウント用変数が始動する
+			if (isPressEnter) {
+				pressEnterTimer++;
+			}
+
+			//1秒後に次のシーンに切り替わる
+			if (pressEnterTimer == 60) {
+				sceneNumber = GAME_TITLE;
+				pressEnterTimer = 0;
+				isPressEnter = false;
+			}
+
+
+
+			break;
+
+		case GAME_OVER:
+
+			if (keys[DIK_RETURN] && !preKeys[DIK_RETURN]) {
+
+				isPressEnter = true;
+
+			}
+
+			//エンターを押したとき秒数カウント用変数が始動する
+			if (isPressEnter) {
+				pressEnterTimer++;
+			}
+
+			//1秒後に次のシーンに切り替わる
+			if (pressEnterTimer == 60) {
+				sceneNumber = 0;
+				pressEnterTimer = 0;
+				isPressEnter = false;
+			}
+
+			break;
 
 		}
-
-		if (player.centerPosition.y > kWindowHeight - player.halfHeight) {
-
-			player.centerPosition.y = float(kWindowHeight - player.halfHeight);
-
-			player.velocity.y = 0;
-
-			player.acceleration.y = 0;
-
-			player.velocity.x = 0;
-
-			player.acceleration.x = 0;
-		}
-
-		if (player.centerPosition.x > kWindowWidth - player.halfWidth) {
-			player.centerPosition.x = kWindowWidth - player.halfWidth;
-		}
-
-
-
-
-
-
 		///
 		/// ↑更新処理ここまで
 		///
@@ -1174,310 +1453,346 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 		Novice::ScreenPrintf(0, 0, "counter=%d", jumpChargeCount);
 
+		switch (sceneNumber) {
 
-		Novice::DrawQuad
-		(
-			int(player.leftTop.x),
-			int(player.leftTop.y),
-			int(player.rightTop.x),
-			int(player.rightTop.y),
-			int(player.leftBottom.x),
-			int(player.leftBottom.y),
-			int(player.rightBottom.x),
-			int(player.rightBottom.y),
-			0, 0, 1, 1, playerTx, WHITE
-		);
+		case GAME_TITLE:
+			Novice::DrawSprite(0, 0, TITLETexture, 1, 1, 0.0f, WHITE);
+			break;
 
-		for (int i = 0; i < kBlockQuantify; i++) {
+		case GAME_PLAY:
+
+			Novice::DrawSprite(0, 0, PLAYTexture, 1, 1, 0.0f, WHITE);
+
+			Novice::DrawBox(wallPosX, 0, kWindowWidth, kWindowHeight, 0.0f, GREEN, kFillModeSolid);
+
+
+
+
+			for (int i = 0; i < kBlockQuantify1; i++) {
+				Novice::DrawQuad
+				(
+					int(block[i].leftT.x),
+					int(block[i].leftT.y),
+
+					int(block[i].rightT.x),
+					int(block[i].rightT.y),
+
+					int(block[i].leftB.x),
+					int(block[i].leftB.y),
+
+					int(block[i].rightB.x),
+					int(block[i].rightB.y),
+
+					0, 0, 32, 32, blockTx, BLACK
+
+
+				);
+
+			}
+
+			for (int i = 0; i < kBlockQuantify2; i++) {
+				Novice::DrawQuad
+				(
+					int(block2[i].leftT.x),
+					int(block2[i].leftT.y),
+
+					int(block2[i].rightT.x),
+					int(block2[i].rightT.y),
+
+					int(block2[i].leftB.x),
+					int(block2[i].leftB.y),
+
+					int(block2[i].rightB.x),
+					int(block2[i].rightB.y),
+
+					0, 0, 32, 32, blockTx, BLACK
+
+
+				);
+
+			}
+
+			for (int i = 0; i < kBlockQuantify3; i++) {
+				Novice::DrawQuad
+				(
+					int(block3[i].leftT.x),
+					int(block3[i].leftT.y),
+
+					int(block3[i].rightT.x),
+					int(block3[i].rightT.y),
+
+					int(block3[i].leftB.x),
+					int(block3[i].leftB.y),
+
+					int(block3[i].rightB.x),
+					int(block3[i].rightB.y),
+
+					0, 0, 32, 32, blockTx, BLACK
+
+
+				);
+
+			}
+
+
+			for (int i = 0; i < kBlockQuantify3; i++) {
+				Novice::DrawQuad
+				(
+					int(block4[i].leftT.x),
+					int(block4[i].leftT.y),
+
+					int(block4[i].rightT.x),
+					int(block4[i].rightT.y),
+
+					int(block4[i].leftB.x),
+					int(block4[i].leftB.y),
+
+					int(block4[i].rightB.x),
+					int(block4[i].rightB.y),
+
+					0, 0, 32, 32, blockTx, BLACK
+
+
+				);
+
+			}
+
+			for (int i = 0; i < kBlockQuantify4; i++) {
+				Novice::DrawQuad
+				(
+					int(block5[i].leftT.x),
+					int(block5[i].leftT.y),
+
+					int(block5[i].rightT.x),
+					int(block5[i].rightT.y),
+
+					int(block5[i].leftB.x),
+					int(block5[i].leftB.y),
+
+					int(block5[i].rightB.x),
+					int(block5[i].rightB.y),
+
+					0, 0, 32, 32, blockTx, BLACK
+
+
+				);
+
+			}
+
+
+			for (int i = 0; i < kBlockQuantify2; i++) {
+				Novice::DrawQuad
+				(
+					int(block6[i].leftT.x),
+					int(block6[i].leftT.y),
+
+					int(block6[i].rightT.x),
+					int(block6[i].rightT.y),
+
+					int(block6[i].leftB.x),
+					int(block6[i].leftB.y),
+
+					int(block6[i].rightB.x),
+					int(block6[i].rightB.y),
+
+					0, 0, 32, 32, blockTx, BLACK
+
+
+				);
+
+			}
+
+
+			for (int i = 0; i < kBlockQuantify5; i++) {
+				Novice::DrawQuad
+				(
+					int(block7[i].leftT.x),
+					int(block7[i].leftT.y),
+
+					int(block7[i].rightT.x),
+					int(block7[i].rightT.y),
+
+					int(block7[i].leftB.x),
+					int(block7[i].leftB.y),
+
+					int(block7[i].rightB.x),
+					int(block7[i].rightB.y),
+
+					0, 0, 32, 32, blockTx, BLACK
+
+
+				);
+
+			}
+
+
+			for (int i = 0; i < kBlockQuantify6; i++) {
+				Novice::DrawQuad
+				(
+					int(block8[i].leftT.x),
+					int(block8[i].leftT.y),
+
+					int(block8[i].rightT.x),
+					int(block8[i].rightT.y),
+
+					int(block8[i].leftB.x),
+					int(block8[i].leftB.y),
+
+					int(block8[i].rightB.x),
+					int(block8[i].rightB.y),
+
+					0, 0, 32, 32, blockTx, BLACK
+
+
+				);
+
+			}
+
+			for (int i = 0; i < kBlockQuantify5; i++) {
+				Novice::DrawQuad
+				(
+					int(block9[i].leftT.x),
+					int(block9[i].leftT.y),
+
+					int(block9[i].rightT.x),
+					int(block9[i].rightT.y),
+
+					int(block9[i].leftB.x),
+					int(block9[i].leftB.y),
+
+					int(block9[i].rightB.x),
+					int(block9[i].rightB.y),
+
+					0, 0, 32, 32, blockTx, BLACK
+
+
+				);
+
+			}
+
+			for (int i = 0; i < kBlockQuantify5; i++) {
+				Novice::DrawQuad
+				(
+					int(block10[i].leftT.x),
+					int(block10[i].leftT.y),
+
+					int(block10[i].rightT.x),
+					int(block10[i].rightT.y),
+
+					int(block10[i].leftB.x),
+					int(block10[i].leftB.y),
+
+					int(block10[i].rightB.x),
+					int(block10[i].rightB.y),
+
+					0, 0, 32, 32, blockTx, BLACK
+
+
+				);
+
+			}
+
+			for (int i = 0; i < kBlockQuantify6; i++) {
+				Novice::DrawQuad
+				(
+					int(block11[i].leftT.x),
+					int(block11[i].leftT.y),
+
+					int(block11[i].rightT.x),
+					int(block11[i].rightT.y),
+
+					int(block11[i].leftB.x),
+					int(block11[i].leftB.y),
+
+					int(block11[i].rightB.x),
+					int(block11[i].rightB.y),
+
+					0, 0, 32, 32, blockTx, BLACK
+
+
+				);
+
+			}
+
+			for (int i = 0; i < kBlockQuantify6; i++) {
+				Novice::DrawQuad
+				(
+					int(block12[i].leftT.x),
+					int(block12[i].leftT.y),
+
+					int(block12[i].rightT.x),
+					int(block12[i].rightT.y),
+
+					int(block12[i].leftB.x),
+					int(block12[i].leftB.y),
+
+					int(block12[i].rightB.x),
+					int(block12[i].rightB.y),
+
+					0, 0, 32, 32, blockTx, BLACK
+
+
+				);
+
+			}
+
+
+			for (int i = 0; i < kBlockQuantify4; i++) {
+				Novice::DrawQuad
+				(
+					int(block13[i].leftT.x),
+					int(block13[i].leftT.y),
+
+					int(block13[i].rightT.x),
+					int(block13[i].rightT.y),
+
+					int(block13[i].leftB.x),
+					int(block13[i].leftB.y),
+
+					int(block13[i].rightB.x),
+					int(block13[i].rightB.y),
+
+					0, 0, 32, 32, blockTx, BLACK
+
+
+				);
+
+			}
+
+
+			//プレイヤ
 			Novice::DrawQuad
 			(
-				int(block[i].leftT.x),
-				int(block[i].leftT.y),
-
-				int(block[i].rightT.x),
-				int(block[i].rightT.y),
-
-				int(block[i].leftB.x),
-				int(block[i].leftB.y),
-
-				int(block[i].rightB.x),
-				int(block[i].rightB.y),
-
-				0, 0, 32, 32, playerTx, BLACK
-
-
+				int(player.leftTop.x),
+				int(player.leftTop.y),
+				int(player.rightTop.x),
+				int(player.rightTop.y),
+				int(player.leftBottom.x),
+				int(player.leftBottom.y),
+				int(player.rightBottom.x),
+				int(player.rightBottom.y),
+				0, 0, 32, 64, currentPlayerTx, WHITE
 			);
+
+
+
+			Novice::ScreenPrintf(0, 0, "counter=%d", jumpChargeCount);
+
+			break;
+
+		case GAME_CLEAR:
+			Novice::DrawSprite(0, 0, RESULTTexture, 1, 1, 0.0f, WHITE);
+			break;
+
+		case GAME_OVER:
+			Novice::DrawSprite(0, 0, GAME_OVERTexture, 1, 1, 0.0f, WHITE);
+			break;
 
 		}
 
-		for (int i = 0; i < kBlockQuantify2; i++) {
-			Novice::DrawQuad
-			(
-				int(block2[i].leftT.x),
-				int(block2[i].leftT.y),
 
-				int(block2[i].rightT.x),
-				int(block2[i].rightT.y),
 
-				int(block2[i].leftB.x),
-				int(block2[i].leftB.y),
 
-				int(block2[i].rightB.x),
-				int(block2[i].rightB.y),
-
-				0, 0, 32, 32, playerTx, BLACK
-
-
-			);
-
-		}
-
-		for (int i = 0; i < kBlockQuantify3; i++) {
-			Novice::DrawQuad
-			(
-				int(block3[i].leftT.x),
-				int(block3[i].leftT.y),
-
-				int(block3[i].rightT.x),
-				int(block3[i].rightT.y),
-
-				int(block3[i].leftB.x),
-				int(block3[i].leftB.y),
-
-				int(block3[i].rightB.x),
-				int(block3[i].rightB.y),
-
-				0, 0, 32, 32, playerTx, BLACK
-
-
-			);
-
-		}
-
-
-		for (int i = 0; i < kBlockQuantify3; i++) {
-			Novice::DrawQuad
-			(
-				int(block4[i].leftT.x),
-				int(block4[i].leftT.y),
-
-				int(block4[i].rightT.x),
-				int(block4[i].rightT.y),
-
-				int(block4[i].leftB.x),
-				int(block4[i].leftB.y),
-
-				int(block4[i].rightB.x),
-				int(block4[i].rightB.y),
-
-				0, 0, 32, 32, playerTx, BLACK
-
-
-			);
-
-		}
-
-		for (int i = 0; i < kBlockQuantify4; i++) {
-			Novice::DrawQuad
-			(
-				int(block5[i].leftT.x),
-				int(block5[i].leftT.y),
-
-				int(block5[i].rightT.x),
-				int(block5[i].rightT.y),
-
-				int(block5[i].leftB.x),
-				int(block5[i].leftB.y),
-
-				int(block5[i].rightB.x),
-				int(block5[i].rightB.y),
-
-				0, 0, 32, 32, playerTx, BLACK
-
-
-			);
-
-		}
-
-
-		for (int i = 0; i < kBlockQuantify2; i++) {
-			Novice::DrawQuad
-			(
-				int(block6[i].leftT.x),
-				int(block6[i].leftT.y),
-
-				int(block6[i].rightT.x),
-				int(block6[i].rightT.y),
-
-				int(block6[i].leftB.x),
-				int(block6[i].leftB.y),
-
-				int(block6[i].rightB.x),
-				int(block6[i].rightB.y),
-
-				0, 0, 32, 32, playerTx, BLACK
-
-
-			);
-
-		}
-
-
-		for (int i = 0; i < kBlockQuantify5; i++) {
-			Novice::DrawQuad
-			(
-				int(block7[i].leftT.x),
-				int(block7[i].leftT.y),
-
-				int(block7[i].rightT.x),
-				int(block7[i].rightT.y),
-
-				int(block7[i].leftB.x),
-				int(block7[i].leftB.y),
-
-				int(block7[i].rightB.x),
-				int(block7[i].rightB.y),
-
-				0, 0, 32, 32, playerTx, BLACK
-
-
-			);
-
-		}
-
-
-		for (int i = 0; i < kBlockQuantify6; i++) {
-			Novice::DrawQuad
-			(
-				int(block8[i].leftT.x),
-				int(block8[i].leftT.y),
-
-				int(block8[i].rightT.x),
-				int(block8[i].rightT.y),
-
-				int(block8[i].leftB.x),
-				int(block8[i].leftB.y),
-
-				int(block8[i].rightB.x),
-				int(block8[i].rightB.y),
-
-				0, 0, 32, 32, playerTx, BLACK
-
-
-			);
-
-		}
-
-		for (int i = 0; i < kBlockQuantify5; i++) {
-			Novice::DrawQuad
-			(
-				int(block9[i].leftT.x),
-				int(block9[i].leftT.y),
-
-				int(block9[i].rightT.x),
-				int(block9[i].rightT.y),
-
-				int(block9[i].leftB.x),
-				int(block9[i].leftB.y),
-
-				int(block9[i].rightB.x),
-				int(block9[i].rightB.y),
-
-				0, 0, 32, 32, playerTx, BLACK
-
-
-			);
-
-		}
-
-		for (int i = 0; i < kBlockQuantify5; i++) {
-			Novice::DrawQuad
-			(
-				int(block10[i].leftT.x),
-				int(block10[i].leftT.y),
-
-				int(block10[i].rightT.x),
-				int(block10[i].rightT.y),
-
-				int(block10[i].leftB.x),
-				int(block10[i].leftB.y),
-
-				int(block10[i].rightB.x),
-				int(block10[i].rightB.y),
-
-				0, 0, 32, 32, playerTx, BLACK
-
-
-			);
-
-		}
-
-		for (int i = 0; i < kBlockQuantify6; i++) {
-			Novice::DrawQuad
-			(
-				int(block11[i].leftT.x),
-				int(block11[i].leftT.y),
-
-				int(block11[i].rightT.x),
-				int(block11[i].rightT.y),
-
-				int(block11[i].leftB.x),
-				int(block11[i].leftB.y),
-
-				int(block11[i].rightB.x),
-				int(block11[i].rightB.y),
-
-				0, 0, 32, 32, playerTx, BLACK
-
-
-			);
-
-		}
-
-		for (int i = 0; i < kBlockQuantify6; i++) {
-			Novice::DrawQuad
-			(
-				int(block12[i].leftT.x),
-				int(block12[i].leftT.y),
-
-				int(block12[i].rightT.x),
-				int(block12[i].rightT.y),
-
-				int(block12[i].leftB.x),
-				int(block12[i].leftB.y),
-
-				int(block12[i].rightB.x),
-				int(block12[i].rightB.y),
-
-				0, 0, 32, 32, playerTx, BLACK
-
-
-			);
-
-		}
-
-
-		for (int i = 0; i < kBlockQuantify4; i++) {
-			Novice::DrawQuad
-			(
-				int(block13[i].leftT.x),
-				int(block13[i].leftT.y),
-
-				int(block13[i].rightT.x),
-				int(block13[i].rightT.y),
-
-				int(block13[i].leftB.x),
-				int(block13[i].leftB.y),
-
-				int(block13[i].rightB.x),
-				int(block13[i].rightB.y),
-
-				0, 0, 32, 32, playerTx, BLACK
-
-
-			);
-
-		}
 
 
 		///
