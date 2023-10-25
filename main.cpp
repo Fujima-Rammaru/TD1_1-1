@@ -66,9 +66,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	int TITLETexture = Novice::LoadTexture("./Resources/HOPPER Title.png");
 
-	int PLAYTexture = Novice::LoadTexture("./Resources/haikei.png");
+	int PLAYTexture = Novice::LoadTexture("./Resources/background.png");
 
-	int RESULTTexture = Novice::LoadTexture("./Resources/HOPPER CREAR.png");
+	int RESULTTexture = Novice::LoadTexture("./Resources/HOPPER CLEAR.png");
 
 	int GAME_OVERTexture = Novice::LoadTexture("./Resources/HOPPER OVER.png");
 
@@ -235,6 +235,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		case GAME_PLAY:
 
 			Novice::DrawSprite(0, 0, PLAYTexture, 1, 1, 0.0f, WHITE);
+
+			Novice::DrawBox(wallPosX, 0, kWindowWidth, kWindowHeight, 0.0f, RED, kFillModeSolid);
 
 			break;
 
