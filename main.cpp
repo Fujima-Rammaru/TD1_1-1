@@ -110,7 +110,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	Novice::Initialize(kWindowTitle, kWindowWidth, kWindowHeight);
 
-	int playerTx = Novice::LoadTexture("white1x1.png");
+	int playerTx = Novice::LoadTexture("white1x1.png");//プレイヤー画像
 
 	int jumpChargeCount = 0;
 
@@ -118,6 +118,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	int jumpAudioHandle = -1;
 
+	int jumpCount = 0;
 
 	// キー入力結果を受け取る箱
 	char keys[256] = { 0 };
@@ -165,6 +166,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 						player.centerPosition.y = block[i].leftT.y - player.halfHeight;
 						player.velocity.x = 0;
 						player.velocity.y = 0;
+
+						jumpCount = 0;
 					}
 
 				}
@@ -189,39 +192,42 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			}
 		}
 
+		if (jumpCount < 2) {
+			if (keys[DIK_SPACE] && jumpChargeCount <= 60) {
+				jumpChargeCount++;
+
+			}
 
 
+			//キーが離れた瞬間に速度と加速度が付与される
+			if (keys[DIK_SPACE] == 0 && preKeys[DIK_SPACE]) {
 
-		if (keys[DIK_SPACE] && jumpChargeCount <= 60) {
-			jumpChargeCount++;
+				jumpCount++;
 
+				if (jumpChargeCount < 30) {//長押しするほどジャンプ力が上がる
+					player.velocity.y = 15.0f;
+
+					player.velocity.x = 2.0f;
+
+				}
+				else if (jumpChargeCount > 31) {
+					player.velocity.y = 20;
+
+					player.velocity.x = 3;
+				}
+				player.acceleration.y = -0.8f;
+
+				if (Novice::IsPlayingAudio(jumpAudioHandle) == 0) {
+					jumpAudioHandle = Novice::PlayAudio(jumpAudio, false, 1.0f);
+
+				}
+
+
+				jumpChargeCount = 0;
+
+			}
 		}
 
-
-		//キーが離れた瞬間に速度と加速度が付与される
-		if (keys[DIK_SPACE] == 0 && preKeys[DIK_SPACE]) {
-			if (jumpChargeCount < 30) {//長押しするほどジャンプ力が上がる
-				player.velocity.y = 15.0f;
-
-				player.velocity.x = 2.0f;
-
-			}
-			else if (jumpChargeCount > 31) {
-				player.velocity.y = 20;
-
-				player.velocity.x = 3;
-			}
-			player.acceleration.y = -0.8f;
-
-			if (Novice::IsPlayingAudio(jumpAudioHandle) == 0) {
-				jumpAudioHandle = Novice::PlayAudio(jumpAudio, false, 1.0f);
-
-			}
-
-
-			jumpChargeCount = 0;
-
-		}
 
 		if (player.centerPosition.y > kWindowHeight - player.halfHeight) {
 
@@ -234,6 +240,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			player.velocity.x = 0;
 
 			player.acceleration.x = 0;
+
+			jumpCount = 0;
+
 		}
 
 		if (player.centerPosition.x > kWindowWidth - player.halfWidth) {
